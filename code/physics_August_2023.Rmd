@@ -1,0 +1,164 @@
+---
+title: "Untitled"
+author: "Jayson Nissen"
+date: "2023-03-01"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+
+```{r}
+load("~/Documents/LA Postdoc stuff copy/RData/LASSO/Denver-Chico_collaboration/Data Compilation/2021 September/lasso_research_8_23_df.Rdata")
+```
+
+```{r}
+ci_df <- lasso_8_23_df %>% 
+  filter(assessment_code %in% c("FCI","FMCE","BEMA","CSEM", "EMCS")
+                                )
+
+```
+
+ Filter the data
+```{r}
+#ci_df <- fci_df #This change is just because I use the same filters across lots of concept inventories
+ci_df <- ci_df %>% filter(is.na(student_id)==FALSE)
+#ci_df <- ci_df %>% filter(student_or_la=="Student")
+ci_df <- ci_df %>% filter(is.na(course_id)==FALSE)
+```
+
+The admin uploads don't have durations so they get dropped. I'll add in 999999 for their time.
+
+```{r}
+ci_df <- ci_df %>% mutate(pre_duration = ifelse(how_collected == "admin_upload", 999999, pre_duration),
+                          post_duration = ifelse(how_collected == "admin_upload", 999999, post_duration))
+ci_df_2 <- ci_df
+
+```
+
+# Now I need to add in all of the course level data
+```{r}
+course_types_2_23_filled <- read.csv("~/Documents/LA Postdoc stuff copy/RData/LASSO/Denver-Chico_collaboration/Data Compilation/2021 September/Physics 2023 Compiler/ci_course_types_august_23_updated.csv")
+#This is pretty much only for courses with more than 5 students on the pre or post.
+```
+
+```{r}
+courses_to_remove <- c(1000)
+```
+
+
+```{r}
+course_red_df <- course_types_2_23_filled %>%
+                       select(course_id, math, level) %>%
+  unique()
+
+checking_df <- course_red_df %>%
+  group_by(course_id) %>%
+  summarise(n = n()) #%>%
+  #filter(n>1)
+
+ci_df <- left_join(ci_df, 
+                     course_types_2_23_filled %>%
+                       select(course_id, math, level) %>% 
+                       unique(), 
+                   by = "course_id"
+                     )
+
+ci_df <- ci_df %>% filter(!(ci_df$course_id %in% courses_to_remove))
+```
+
+remove identifiers and deidentify institutions
+```{r}
+# institution_df <- ci_df %>% 
+#   select(institution_name) %>%
+#   unique %>%
+#   mutate(institution_id = row_number())
+# 
+# #write_csv(institution_df, file = "institution_df.csv") # write it out to clean up the institutions
+# institution_df <- read.csv("~/Documents/LA Postdoc stuff copy/RData/LASSO/Denver-Chico_collaboration/Data Compilation/2021 September/Physics 2023 Compiler/institution_df.csv")
+# 
+# ci_df_2 <- ci_df %>%
+#   #left_join(institution_df %>%
+#               #select(institution_name, institution_id)) %>%
+#   dplyr::select(-c(institution_name,instructor, course_name, course_number, la_use_comments, course_context, course_major_requirement,course_comments))
+```
+
+```{r}
+ci_df_2 <- ci_df %>%
+   dplyr::select(-c(institution_name,instructor, course_name, course_number, la_use_comments, course_context, course_major_requirement,course_comments))
+
+physics_8_23_df <- ci_df
+save(physics_8_23_df, file = "physics_2_23_df.Rdata")
+```
+
+```{r}
+fci_8_23_df <- physics_8_23_df %>% filter(assessment_code == "FCI")
+   
+save(fci_8_23_df, file = "fci_8_23_df.Rdata")
+```
+
+
+
+replace 24 with 103, 
+
+
+This mess brings in the old file and then exports a csv file to update.
+```{r eval=FALSE, include=FALSE}
+
+# These lines are used for updating the course level data.
+red_ci_df <- physics_8_23_df %>% select(course_id,course_number,course_name, institution_name, instructor, math, level) %>% unique()
+
+red_course_df <- red_ci_df %>% 
+  select(course_number, course_name,institution_name, math, level) %>%
+  filter(is.na(math)==F) %>%
+  unique() %>%
+  mutate(id = row_number())
+
+#red_course_df <- red_course_df %>% # these are duplicated courses with contradictory math or level shouldn't be a problem again
+#  filter(!(id %in% c(99,86)))
+
+#This is just filling in new courses from the same instructors.
+thing_df <- red_ci_df %>% 
+  select(course_id,course_number,course_name, institution_name, instructor,) %>% 
+  left_join(red_course_df %>% select(-id))
+
+#checks that the courses aren't adding extra rows due to contradictory coding.
+thing_dup_df <- thing_df %>% group_by(course_id) %>% summarize(n = n()) %>% filter(n>1)
+
+dup_thing <- thing_df %>% filter(course_id %in% thing_dup_df$course_id) #should only contain the texas state course and have 58 observations
+# check
+#sum(is.na(red_fci_df$math))
+
+write.csv(thing_df, file = "ci_course_types_august_23.csv")
+
+# I want to add two rows with the pre size and post size so that I don't add a bunch of data.
+
+course_n <- physics_2_23_df %>%
+  group_by(course_id) %>%
+  summarize(n_pre = sum(!is.na(pre_score)),
+            n_post = sum(!is.na(post_score)))
+
+t_2_df <- left_join(thing_df, course_n)
+
+
+new_course_df <- t_2_df %>% filter(is.na(math)==T) %>%
+  filter(n_pre >5 | n_post > 5)
+
+t3_df <- t_2_df %>% filter(is.na(math)==F) %>% bind_rows(new_course_df)
+#write.csv(t3_df, file = "ci_course_types_feb_23.csv")
+
+courses_to_remove <- c(1000,)
+```
+
+```{r}
+physics_8_23_df %>% select(year,term) %>% unique()
+two023_df <- physics_8_23_df %>% filter(year == 2023)
+```
+
+more code to deal with classifying coures
+```{r}
+course1_df <- physics_8_23_df %>% filter(course_id == 3463)
+physics_8_23_df %>% filter(course_id == 3019) %>% select(course_context, assessment_code) %>% unique()
+```

@@ -1,0 +1,277 @@
+---
+title: "February 2023"
+author: "Jayson Nissen"
+date: "2023-02-27"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(readxl)
+library(tidyverse)
+
+#source(file = "~/Documents/LA Postdoc stuff copy/RData/LASSO/Denver-Chico_collaboration/Data Compilation/January 2021/demographicsfun.R")
+#source(file = "~/Documents/LA Postdoc stuff copy/RData/LASSO/Denver-Chico_collaboration/Data Compilation/January 2021/compilation_functions.R")
+source(file = "~/Documents/LA Postdoc stuff copy/RData/LASSO/Denver-Chico_collaboration/Data Compilation/January 2021/compilation_function Sept21.R")
+
+```
+
+```{r}
+load("~/Documents/LA Postdoc stuff copy/RData/LASSO/Denver-Chico_collaboration/Data Compilation/2021 September/lasso_research_8_23_df.Rdata")
+
+lasso_old_df <- lasso_8_23_df 
+
+lasso_old_df %>% select(year, term) %>% unique()
+```
+acid1
+bci
+xbema
+calcci
+cans
+cci
+cci1
+cci2
+cins
+xclass-bio
+xclass-phys
+xcsem
+dmi
+xemcs
+xfci
+xfmce
+gasbs
+grits
+groupsurve
+imca
+lsci
+macs
+mwcs2
+sosescp
+spci
+toast
+tosl
+xtuv
+
+
+```{r}
+bad_all_fall_23 <- no_covid_sept_21_compiler_fun("~/Documents/LA Postdoc stuff copy/RData/LASSO/Denver-Chico_collaboration/Data Compilation/2021 September/LASSO Downloads/LASSO_2024-6-4(1).xlsx")
+#bad_all_fall_23_3 <- no_covid_sept_21_compiler_fun("~/Documents/LA Postdoc stuff copy/RData/LASSO/Denver-Chico_collaboration/Data Compilation/2021 September/LASSO Downloads/LASSO_2024-6-4 fall 2023.xlsx")
+bad_all_fall_23_2 <- no_covid_sept_21_compiler_fun("~/Documents/LA Postdoc stuff copy/RData/LASSO/Denver-Chico_collaboration/Data Compilation/2021 September/LASSO Downloads/LASSO_2024-6-4.xlsx")
+all_W24 <- no_covid_sept_21_compiler_fun("~/Documents/LA Postdoc stuff copy/RData/LASSO/Denver-Chico_collaboration/Data Compilation/2021 September/LASSO Downloads/LASSO_2024-6-4 Winter 2024.xlsx")
+
+fci_f23 <- no_covid_sept_21_compiler_fun("~/Documents/LA Postdoc stuff copy/RData/LASSO/Denver-Chico_collaboration/Data Compilation/2021 September/LASSO Downloads/LASSO_2024-6-4 Fall 2023 FCI.xlsx")
+fmce_f23 <- no_covid_sept_21_compiler_fun("~/Documents/LA Postdoc stuff copy/RData/LASSO/Denver-Chico_collaboration/Data Compilation/2021 September/LASSO Downloads/LASSO_2024-6-6-fall-23-FMCE.xlsx")
+class_phys_f23 <- no_covid_sept_21_compiler_fun("~/Documents/LA Postdoc stuff copy/RData/LASSO/Denver-Chico_collaboration/Data Compilation/2021 September/LASSO Downloads/LASSO_2024-6-6(1).xlsx")
+emcs_f23 <- no_covid_sept_21_compiler_fun("~/Documents/LA Postdoc stuff copy/RData/LASSO/Denver-Chico_collaboration/Data Compilation/2021 September/LASSO Downloads/LASSO_2024-6-6(6).xlsx")
+bema_f23 <- no_covid_sept_21_compiler_fun("~/Documents/LA Postdoc stuff copy/RData/LASSO/Denver-Chico_collaboration/Data Compilation/2021 September/LASSO Downloads/LASSO_2024-6-6(4).xlsx")
+calcci_f23 <- no_covid_sept_21_compiler_fun("~/Documents/LA Postdoc stuff copy/RData/LASSO/Denver-Chico_collaboration/Data Compilation/2021 September/LASSO Downloads/LASSO_2024-6-6(3).xlsx")
+csem_f23 <- no_covid_sept_21_compiler_fun("~/Documents/LA Postdoc stuff copy/RData/LASSO/Denver-Chico_collaboration/Data Compilation/2021 September/LASSO Downloads/LASSO_2024-6-6-fall-23-CSEM.xlsx")
+class_bio_f23 <- no_covid_sept_21_compiler_fun("~/Documents/LA Postdoc stuff copy/RData/LASSO/Denver-Chico_collaboration/Data Compilation/2021 September/LASSO Downloads/LASSO_2024-6-6(2).xlsx")
+tuv_f23 <- no_covid_sept_21_compiler_fun("~/Documents/LA Postdoc stuff copy/RData/LASSO/Denver-Chico_collaboration/Data Compilation/2021 September/LASSO Downloads/LASSO_2024-6-6.xlsx")
+```
+
+
+```{r}
+#temp_f23 <- no_covid_sept_21_compiler_fun("~/Documents/LA Postdoc stuff copy/RData/LASSO/Denver-Chico_collaboration/Data Compilation/2021 September/LASSO Downloads/.xlsx")
+
+bad_all_fall_23 %>% select(year, term, assessment_code) %>% unique()
+
+lasso_f23_df <- bind_rows(all_W24, bema_f23, class_bio_f23, class_phys_f23, calcci_f23, csem_f23, emcs_f23, fci_f23, fmce_f23 )
+
+
+thing <- bad_all_fall_23 %>%
+  dplyr::filter(!(assessment_sequence_id %in% lasso_f23_df$assessment_sequence_id))
+
+lasso_df <- bind_rows(lasso_f23_df, thing)
+
+```
+
+```{r}
+source(file = "~/Documents/LA Postdoc stuff copy/RData/LASSO/Denver-Chico_collaboration/Data Compilation/January 2021/demographicsfun.R") # This is hear for updating it.
+lasso_df <- demographics_function(lasso_df)
+
+#Code to check the demographics
+temp_df <- demographics_function(lasso_df)
+
+#gender check
+gender <- temp_df %>% select(gender, gender_noanswer, genderqueer_nonbinary, transman,transwoman,man,woman,transgender)
+thing <- temp_df[gender$gender_noanswer+gender$genderqueer_nonbinary+gender$transman+gender$transwoman+gender$man+gender$woman==0,]
+
+gender_new_df <- 
+  as.data.frame(unique(gender$gender[gender$gender_noanswer+gender$genderqueer_nonbinary+gender$transman+gender$transwoman+gender$man+gender$woman+gender$transgender==0]))
+summary(gender)
+print(gender_new_df[1])
+
+race <- temp_df %>% select(race, ethnicity, white, black, asian, hispanic, pacisland, amind, multiracial,mideastern,race_noanswer)
+
+race_new <- race %>% dplyr::filter(white+black+asian+hispanic+pacisland+amind+multiracial+mideastern+race_noanswer==0)
+unique(race$ethnicity[race$white+race$black+race$asian+race$hispanic+race$pacisland+race$amind+race$multiracial+race$mideastern+race$race_noanswer==0])
+unique(race$race[race$white+race$black+race$asian+race$hispanic+race$pacisland+race$amind+race$multiracial+race$mideastern+race$race_noanswer==0])
+summary(race)
+
+
+#thing <- temp_df %>% dplyr::filter(asian == 0) %>%
+#        select(asian, race, ethnicity) %>%
+#        unique()
+
+#thing <- as_tibble(unique(race$ethnicity))
+#thing$inethn <- ifelse(thing$value %in% Hispanic_eth,1,0)
+#thing$value[thing$inethn==0]
+
+#race <- old_lasso_df %>% select( white, black, asian, hispanic, hawaiian_or_other_pacific_islander, american_indian,race_noanswer, race_other)
+#summary(race)
+#race_2 <- old_lasso_df[race$white+race$black+race$asian+race$hispanic+race$hawaiian_or_other_pacific_islander+race$american_indian++race$race_other+race$race_noanswer==0,]
+#old_lasso_df$american_indian
+```
+```{r}
+#temp_df <- new_lasso_df
+#new_lasso_df <- temp_df
+
+
+lasso_df <- lasso_df %>%
+  dplyr::rename(gender_text = gender,
+               race_text = race,
+               ethnicity_text= ethnicity,
+               male = man,
+               female = woman,
+               genderqueer_nonconforming = genderqueer_nonbinary,
+               hawaiian_or_other_pacific_islander = pacisland,
+               american_indian = amind,
+               parent_degree = parent_has_degree,
+               first_time = first_time_student ,
+               n_of_qs_on_assessment = pre_num_questions ,
+               n_of_qs_on_assessment_post = post_num_questions ,
+               post_assessment_version = post_version,
+               pre_assessment_version = pre_version
+               ) 
+
+lasso_df <- lasso_df %>%
+        mutate(first_time = as.numeric(ifelse(first_time=="Yes", 1, ifelse(first_time=="No",0, NA))))
+```
+
+add row number to easily identify each data point
+```{r}
+lasso_df <- lasso_df %>% mutate(row_number = as.character(999999+1:n()))
+```
+
+
+```{r}
+library(lubridate)
+lasso_df <- lasso_df %>% 
+        mutate(course_id = as.numeric(course_id),
+               weekly_planning_time = as.numeric(weekly_planning_time),
+               n_of_qs_on_assessment = as.numeric(n_of_qs_on_assessment),
+               pre_score = as.numeric(pre_score),
+               post_score = as.numeric(post_score),
+               #pre_duration = ifelse(pre_duration=="No Data",NA,pre_duration),
+               #post_duration = ifelse(post_duration=="No Data",NA,post_duration),
+               pre_duration = as.numeric(period_to_seconds(hms(pre_duration))),
+               post_duration = as.numeric(period_to_seconds(hms(post_duration))))
+
+
+
+#This throws an erro because soem of the data is "No Data" and it is changing that to NA.
+```
+
+
+
+```{r}
+lasso_6_24_df <- bind_rows(lasso_8_23_df %>% select(-"assessment_code == ..."), lasso_df)
+lasso_6_24_df[lasso_6_24_df =="N/A" ] <- NA
+lasso_6_24_df[lasso_6_24_df =="NA" ] <- NA
+```
+
+
+
+
+getting institution information to update
+```{r}
+institution_lasso_df <- lasso_6_24_df %>% select(institution_name) %>% unique()
+
+institutions_df_3_2023 <- read.csv("~/Documents/LA Postdoc stuff copy/RData/LASSO/Denver-Chico_collaboration/Data Compilation/2021 September/institutions_df_3_2023.csv")
+
+institution_lasso_df <- institution_lasso_df %>% left_join(institutions_df_3_2023, by = "institution_name")
+
+#write_csv(institution_lasso_df, file = "institutions_df_6_2024.csv")
+
+
+#pen_df <- thing_df %>% dplyr::filter(institution_name == "Penn State University") %>% select(institution_name,instructor) %>% unique()
+```
+
+
+```{r}
+institutions_df_6_2024 <- read.csv("~/Documents/LA Postdoc stuff copy/RData/LASSO/Denver-Chico_collaboration/Data Compilation/2021 September/institutions_df_6_2024.csv")
+
+
+unique_ids <- institutions_df_6_2024 %>%
+  filter(!grepl("^HS", institution_id)) %>%
+  distinct(cleaned_institution_name) %>%
+  mutate(new_institution_id = row_number())
+
+# Merge the new institution_ids with the original dataframe
+df_updated <- institutions_df_6_2024 %>%
+  left_join(unique_ids, by = "cleaned_institution_name") %>%
+  mutate(institution_id = ifelse(grepl("^HS", institution_id), institution_id, new_institution_id)) %>%
+  select(-new_institution_id)
+
+
+
+lasso_6_24_df <- lasso_6_24_df %>% select(-cleaned_institution_name, -institution_id) %>%
+  left_join(df_updated, by = "institution_name")
+no_name <- lasso_6_24_df %>% dplyr::filter(is.na(cleaned_institution_name)==T)
+
+
+save(lasso_6_24_df, file = "lasso_march_23_df.Rdata")
+```
+
+
+# LASSO Instructors
+```{r}
+#lasso_users_6_24 <- lasso_6_24_df %>%
+#  select(instructor, cleaned_institution_name, discipline) %>% unique()
+
+lasso_users_6_24_df <- lasso_6_24_df %>%
+  select(instructor, cleaned_institution_name) %>% unique()
+
+write_csv(lasso_users_6_24_df, file = "lasso_users_6_24.csv")
+```
+
+# Lasso for upload
+
+```{r}
+LASSO_1.0_for_upload_6_24 <- lasso_6_24_df %>%
+  select(-c("hispanic","white","black","asian", "hawaiian_or_other_pacific_islander", "american_indian",  "mideastern", "multiracial",  "white_hisp", "nonwhite_hisp", "white_nonhisp","race_noanswer","white_bipoc","asian_urm", "urm", institution_name)) %>%
+  rename(institution_name = cleaned_institution_name)
+
+save(LASSO_1.0_for_upload_6_24, file = "LASSO_1.0_for_upload_6_24.R")
+
+write.csv(LASSO_1.0_for_upload_6_24, file = "LASSO_1.0_for_upload_6_24.csv")
+
+duplicated_rows <- LASSO_1.0_for_upload_6_24[duplicated(LASSO_1.0_for_upload_6_24), ]
+```
+
+```{r}
+thing <- LASSO_1.0_for_upload_6_24 %>% filter(is.na(instructor)==T)
+
+class_chem <- lasso_6_24_df %>% 
+  filter(assessment_code == "CLASS-CHEM", is.na(pre_1)==F|is.na(post_1)==F)
+
+thing1 <- unique(lasso_8_23_df$la_use_comments)
+thing2 <- unique(lasso_8_23_df$course_comments)
+
+```
+
+# stereotype threat research
+```{r}
+unique(lasso_8_23_df$pre_demographics_before)
+
+st_research_df <- lasso_8_23_df %>%
+  filter(is.na(pre_demographics_before)==F, is.na(pre_score)==T|is.na(post_score)==T)
+
+sum_st <- st_research_df %>% group_by(assessment_code, female) %>%
+  summarise(n = n())
+
+st_research_df$
+```
+
